@@ -79,7 +79,7 @@ class PresenceController extends BaseController
                     $request->merge(['description' => $description]);
                     $presence = $this->_store($request);
                     $data = [
-                        'date' => $presence->date,
+                        'date' => Carbon::parse($presence->date)->isoFormat('D MMMM Y'),
                         'type' => $presence->type,
                         'time_in' => $presence->time_in,
                         'latitude' => $presence->latitude,
@@ -101,7 +101,7 @@ class PresenceController extends BaseController
                         $request->merge(['description' => $description]);
                         $presence = $this->_store($request);
                         $data = [
-                            'date' => $presence->date,
+                            'date' => Carbon::parse($presence->date)->isoFormat('D MMMM Y'),
                             'type' => $presence->type,
                             'time_in' => $presence->time_in,
                             'latitude' => $presence->latitude,
