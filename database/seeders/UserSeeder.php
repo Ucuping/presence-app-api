@@ -19,16 +19,16 @@ class UserSeeder extends Seeder
         User::insert([
             [
                 'shift_id' => 1,
-                'name' => 'Dafid Prasetyo',
-                'username' => 'dafidpr',
-                'email' => 'dafidpr@gmail.com',
+                'name' => 'Yusup Supriyanto',
+                'username' => 'yusup',
+                'email' => 'yusup@wearehackerone.com',
                 'password' => Hash::make('1234'),
             ],
             [
                 'shift_id' => 2,
-                'name' => 'Dimas Anggara',
-                'username' => 'dimas',
-                'email' => 'dimas@gmail.com',
+                'name' => 'Ridho Pijak Imana',
+                'username' => 'ridho',
+                'email' => 'ridho@gmail.com',
                 'password' => Hash::make('1234'),
             ],
         ]);

@@ -19,9 +19,9 @@ class PresenceSeeder extends Seeder
             [
                 'user_id' => 1,
                 'shift_id' => 1,
-                'date' => '2020-05-03',
+                'date' => '2021-01-03',
                 'type' => 'checkin',
-                'time_in' => '06:00:00',
+                'time_in' => '08:00:00',
                 'latitude' => '-6.91748',
                 'longitude' => '107.61942',
                 'description' => 'Masuk',
@@ -29,7 +29,7 @@ class PresenceSeeder extends Seeder
             [
                 'user_id' => 1,
                 'shift_id' => 1,
-                'date' => '2020-05-03',
+                'date' => '2021-08-03',
                 'type' => 'checkout',
                 'time_in' => '14:00:00',
                 'latitude' => '-6.91748',
@@ -39,9 +39,9 @@ class PresenceSeeder extends Seeder
             [
                 'user_id' => 2,
                 'shift_id' => 2,
-                'date' => '2020-05-03',
+                'date' => '2021-05-12',
                 'type' => 'checkin',
-                'time_in' => '12:00:00',
+                'time_in' => '09:00:00',
                 'latitude' => '-6.91748',
                 'longitude' => '107.61942',
                 'description' => 'Terlambat',

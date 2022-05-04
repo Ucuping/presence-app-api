@@ -13,7 +13,7 @@ class AuthController extends BaseController
     {
         if (Auth::attempt(['username' => $request->username, 'password' => $request->password])) {
             $user = Auth::user();
-            $success['token'] =  $user->createToken('PresenceQRCodeApp')->plainTextToken;
+            $success['token'] =  $user->createToken('ApiPresenceApp')->plainTextToken;
             $success['data']['name'] =  $user->name;
             $success['data']['username'] =  $user->username;
             $success['data']['email'] =  $user->email;
