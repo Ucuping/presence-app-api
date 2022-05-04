@@ -53,7 +53,15 @@ class PresenceController extends BaseController
             if (!$presence) {
                 return $this->sendError('Data tidak ditemukan.', [], 404);
             }
-            return $this->sendResponse($presence, 'Berhasil mengambil data absensi.');
+            $data = [
+                'date' => Carbon::parse($presence->date)->isoFormat('D MMMM Y'),
+                'shift' => 'Pukul ' . $presence->shift->start_entry . ' s/d ' . $presence->shift->start_time_exit,
+                'type' => $presence->type == 'checkin' ? 'Masuk' : 'Pulang',
+                'time_in' => Carbon::parse($presence->time_in)->isoFormat('HH:mm'),
+                'location' => $presence->latitude . ', ' . $presence->longitude,
+                'description' => $presence->description,
+            ];
+            return $this->sendResponse($data, 'Berhasil mengambil data absensi.');
         } catch (Exception $e) {
             $this->sendError($e->getMessage(), ['trace' => $e->getTrace()], 500);
         }
