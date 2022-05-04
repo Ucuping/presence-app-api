@@ -36,7 +36,7 @@ class PresenceController extends BaseController
     {
         try {
             $maxDays = date('t');
-            $attendance = Presence::where(['user_id' => Auth::user()->id, 'type' => 'checkin'])->get();
+            $attendance = Presence::where(['user_id' => Auth::user()->id, 'type' => 'checkin'])->whereMonth('date', date('m'))->whereYear('date', date('Y'))->get();
             $data = [
                 'attendance' => $attendance->count(),
                 'absence' => $maxDays - $attendance->count(),
