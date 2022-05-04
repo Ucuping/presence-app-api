@@ -66,10 +66,10 @@ class PresenceController extends BaseController
             $strParse = explode('-', $request->qr_data);
             $type = $strParse[0] == 'datang' ? 'checkin' : 'checkout';
             $date = Carbon::createFromFormat('Y-m-d', $strParse[1] . '-' . $strParse[2] . '-' . $strParse[3]);
-            $request->merge(['type' => $type, 'date' => $date]);
+            $request->merge(['type' => $type, 'date' => $date->format('Y-m-d')]);
             $shift = Auth::user()->shift()->first();
             if ($type == 'checkin') {
-                $checkin = Presence::where(['user_id' => Auth::user()->id, 'type' => 'checkin', 'date' => $date])->first();
+                $checkin = Presence::where(['user_id' => Auth::user()->id, 'type' => 'checkin', 'date' => $date->format('Y-m-d')])->first();
                 if (!$checkin) {
                     if (Carbon::now()->format('H:i:s') < $shift->start_time_entry) {
                         $description = 'Masuk | Tepat Waktu';
@@ -77,12 +77,21 @@ class PresenceController extends BaseController
                         $description = 'Masuk | Terlambat';
                     }
                     $request->merge(['description' => $description]);
-                    $this->_store($request);
+                    $presence = $this->_store($request);
+                    $data = [
+                        'date' => $presence->date,
+                        'type' => $presence->type,
+                        'time_in' => $presence->time_in,
+                        'latitude' => $presence->latitude,
+                        'longitude' => $presence->longitude,
+                        'description' => $presence->description,
+                    ];
+                    return $this->sendResponse($data, 'Berhasil menyimpan absensi.');
                 } else {
                     return $this->sendError('Anda sudah melakukan absen masuk hari ini.', [], 400);
                 }
             } else {
-                $checkout = Presence::where(['user_id' => Auth::user()->id, 'type' => 'checkout', 'date' => $date])->first();
+                $checkout = Presence::where(['user_id' => Auth::user()->id, 'type' => 'checkout', 'date' => $date->format('Y-m-d')])->first();
                 if (!$checkout) {
                     if (Carbon::now()->format('H:i:s') < $shift->start_exit) {
                         Presence::where(['user_id' => Auth::user()->id, 'date' => Carbon::now()->format('Y-m-d')])->delete();
@@ -90,7 +99,16 @@ class PresenceController extends BaseController
                     } else {
                         $description = 'Pulang | Tepat Waktu';
                         $request->merge(['description' => $description]);
-                        $this->_store($request);
+                        $presence = $this->_store($request);
+                        $data = [
+                            'date' => $presence->date,
+                            'type' => $presence->type,
+                            'time_in' => $presence->time_in,
+                            'latitude' => $presence->latitude,
+                            'longitude' => $presence->longitude,
+                            'description' => $presence->description,
+                        ];
+                        return $this->sendResponse($data, 'Berhasil menyimpan absensi.');
                     }
                 } else {
                     return $this->sendError('Anda sudah melakukan absen pulang hari ini.', [], 400);
@@ -113,6 +131,6 @@ class PresenceController extends BaseController
             'longitude' => $request->longitude,
             'description' => $request->description,
         ]);
-        return $this->sendResponse($presence, 'Berhasil menambahkan data absensi.');
+        return $presence;
     }
 }
