@@ -88,14 +88,14 @@ class PresenceController extends BaseController
                     ];
                     return $this->sendResponse($data, 'Berhasil menyimpan absensi.');
                 } else {
-                    return $this->sendError('Anda sudah melakukan absen masuk hari ini.', [], 400);
+                    return $this->sendError('Kamu sudah melakukan absen masuk hari ini.', [], 400);
                 }
             } else {
                 $checkout = Presence::where(['user_id' => Auth::user()->id, 'type' => 'checkout', 'date' => $date->format('Y-m-d')])->first();
                 if (!$checkout) {
                     if (Carbon::now()->format('H:i:s') < $shift->start_exit) {
                         Presence::where(['user_id' => Auth::user()->id, 'date' => Carbon::now()->format('Y-m-d')])->delete();
-                        $this->sendResponse(null, 'Anda dianggap bolos karena pulang lebih awal.');
+                        $this->sendResponse(null, 'Kamu dianggap bolos karena pulang lebih awal.');
                     } else {
                         $description = 'Pulang | Tepat Waktu';
                         $request->merge(['description' => $description]);
@@ -111,7 +111,7 @@ class PresenceController extends BaseController
                         return $this->sendResponse($data, 'Berhasil menyimpan absensi.');
                     }
                 } else {
-                    return $this->sendError('Anda sudah melakukan absen pulang hari ini.', [], 400);
+                    return $this->sendError('Kamu sudah melakukan absen pulang hari ini.', [], 400);
                 }
             }
         } catch (Exception $e) {
