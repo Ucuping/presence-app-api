@@ -28,9 +28,7 @@ Route::prefix('v1')->group(function () {
 
         Route::prefix('presences')->group(function () {
             Route::get('get-data', [PresenceController::class, 'getData']);
-            Route::get('get-data/{presence}', [PresenceController::class, 'getPresenceById']);
-            Route::post('store', [PresenceController::class, 'createPresence']);
-            Route::get('count', [PresenceController::class, 'countPresences']);
+            Route::post('store', [PresenceController::class, 'store']);
         });
     });
 });

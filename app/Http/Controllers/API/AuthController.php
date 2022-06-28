@@ -7,7 +7,7 @@ use App\Http\Requests\API\AuthRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class AuthController extends BaseController
+class AuthController extends Controller
 {
     public function login(AuthRequest $request)
     {
@@ -18,15 +18,25 @@ class AuthController extends BaseController
             $success['data']['username'] =  $user->username;
             $success['data']['email'] =  $user->email;
 
-            return $this->sendResponse($success, 'Berhasil login.');
+            return response()->json([
+                'success' => true,
+                'data' => $success,
+                'message' => 'Berhasil Login'
+            ]);
         } else {
-            return $this->sendError('Username atau password salah.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Username atau password salah'
+            ], 422);
         }
     }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-        return $this->sendResponse([], 'Berhasil logout.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil Logout'
+        ]);
     }
 }

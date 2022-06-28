@@ -9,15 +9,14 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class PresenceController extends BaseController
+class PresenceController extends Controller
 {
-    // Get All Presences
     public function getData(Request $request)
     {
         try {
             setlocale(LC_ALL, 'IND');
             Carbon::setLocale('id');
-            $presences = Presence::where(['user_id' => Auth::user()->id])->orderBy('id', 'desc');
+            $presences = Presence::whereUserId(Auth::user()->id)->orderById('desc');
             if ($request->limit) {
                 $presences = $presences->take($request->limit);
             }
@@ -26,49 +25,21 @@ class PresenceController extends BaseController
                 $presence->date = Carbon::parse($presence->date)->isoFormat('D MMMM Y');
                 return $presence;
             });
-            return $this->sendResponse($presences, 'Berhasil mengambil data absensi.');
+            return response()->json([
+                'success' => true,
+                'data' => $presences,
+                'message' => 'Berhasil mengambil data'
+            ]);
         } catch (Exception $e) {
-            $this->sendError($e->getMessage(), ['trace' => $e->getTrace()], 500);
-        }
-    }
-    // Count Presences
-    public function countPresences(Request $request)
-    {
-        try {
-            $maxDays = date('t');
-            $attendance = Presence::where(['user_id' => Auth::user()->id, 'type' => 'checkin'])->whereMonth('date', date('m'))->whereYear('date', date('Y'))->get();
-            $data = [
-                'attendance' => $attendance->count(),
-                'absence' => $maxDays - $attendance->count(),
-            ];
-            return $this->sendResponse($data, 'Berhasil mengambil jumlah absensi.');
-        } catch (Exception $e) {
-            $this->sendError($e->getMessage(), ['trace' => $e->getTrace()], 500);
-        }
-    }
-    // Get Presence By ID
-    public function getPresenceById(Request $request, Presence $presence)
-    {
-        try {
-            if (!$presence) {
-                return $this->sendError('Data tidak ditemukan.', [], 404);
-            }
-            $data = [
-                'date' => Carbon::parse($presence->date)->isoFormat('D MMMM Y'),
-                'shift' => 'Pukul ' . $presence->shift->start_entry . ' s/d ' . $presence->shift->start_time_exit,
-                'type' => $presence->type == 'checkin' ? 'Masuk' : 'Pulang',
-                'time_in' => Carbon::parse($presence->time_in)->isoFormat('HH:mm'),
-                'location' => $presence->latitude . ', ' . $presence->longitude,
-                'description' => $presence->description,
-            ];
-            return $this->sendResponse($data, 'Berhasil mengambil data absensi.');
-        } catch (Exception $e) {
-            $this->sendError($e->getMessage(), ['trace' => $e->getTrace()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTrace()
+            ], 500);
         }
     }
 
-    // Create Presence
-    public function createPresence(Request $request)
+    public function store(Request $request)
     {
         try {
             $strParse = explode('-', $request->qr_data);
@@ -85,7 +56,16 @@ class PresenceController extends BaseController
                         $description = 'Masuk | Terlambat';
                     }
                     $request->merge(['description' => $description]);
-                    $presence = $this->_store($request);
+                    $presence = Presence::create([
+                        'user_id' => Auth::user()->id,
+                        'shift_id' => $shift->id,
+                        'date' => $request->date,
+                        'type' => $request->type,
+                        'time_in' => Carbon::now()->format('H:i:s'),
+                        'latitude' => $request->latitude,
+                        'longitude' => $request->longitude,
+                        'description' => $request->description,
+                    ]);
                     $data = [
                         'date' => Carbon::parse($presence->date)->isoFormat('D MMMM Y'),
                         'type' => $presence->type,
@@ -94,20 +74,39 @@ class PresenceController extends BaseController
                         'longitude' => $presence->longitude,
                         'description' => $presence->description,
                     ];
-                    return $this->sendResponse($data, 'Berhasil menyimpan absensi.');
+                    return response()->json([
+                        'success' => true,
+                        'data' => $data,
+                        'message' => 'Berhasil menyimpan absensi'
+                    ]);
                 } else {
-                    return $this->sendError('Kamu sudah melakukan absen masuk hari ini.', [], 400);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Kamu sudah melakukan absensi masuk hari ini'
+                    ], 400);
                 }
             } else {
                 $checkout = Presence::where(['user_id' => Auth::user()->id, 'type' => 'checkout', 'date' => $date->format('Y-m-d')])->first();
                 if (!$checkout) {
                     if (Carbon::now()->format('H:i:s') < $shift->start_exit) {
                         Presence::where(['user_id' => Auth::user()->id, 'date' => Carbon::now()->format('Y-m-d')])->delete();
-                        $this->sendResponse(null, 'Kamu dianggap bolos karena pulang lebih awal.');
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'Kamu dianggap bolos karena pulang lebih awal'
+                        ]);
                     } else {
                         $description = 'Pulang | Tepat Waktu';
                         $request->merge(['description' => $description]);
-                        $presence = $this->_store($request);
+                        $presence = Presence::create([
+                            'user_id' => Auth::user()->id,
+                            'shift_id' => $shift->id,
+                            'date' => $request->date,
+                            'type' => $request->type,
+                            'time_in' => Carbon::now()->format('H:i:s'),
+                            'latitude' => $request->latitude,
+                            'longitude' => $request->longitude,
+                            'description' => $request->description,
+                        ]);
                         $data = [
                             'date' => Carbon::parse($presence->date)->isoFormat('D MMMM Y'),
                             'type' => $presence->type,
@@ -116,29 +115,25 @@ class PresenceController extends BaseController
                             'longitude' => $presence->longitude,
                             'description' => $presence->description,
                         ];
-                        return $this->sendResponse($data, 'Berhasil menyimpan absensi.');
+                        return response()->json([
+                            'success' => true,
+                            'data' => $data,
+                            'message' => 'Berhasil menyimpan data absensi'
+                        ]);
                     }
                 } else {
-                    return $this->sendError('Kamu sudah melakukan absen pulang hari ini.', [], 400);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Kamu sudah melakukan absensi pulang hari ini'
+                    ], 400);
                 }
             }
         } catch (Exception $e) {
-            $this->sendError($e->getMessage(), ['trace' => $e->getTrace()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTrace()
+            ], 500);
         }
-    }
-
-    private function _store(Request $request)
-    {
-        $presence = Presence::create([
-            'user_id' => Auth::user()->id,
-            'shift_id' => Auth::user()->shift_id,
-            'date' => $request->date,
-            'type' => $request->type,
-            'time_in' => Carbon::now()->format('H:i:s'),
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'description' => $request->description,
-        ]);
-        return $presence;
     }
 }

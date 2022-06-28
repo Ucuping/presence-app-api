@@ -20,7 +20,6 @@ return new class extends Migration
             $table->time('start_time_entry');
             $table->time('start_exit');
             $table->time('start_time_exit');
-            $table->boolean('status')->default(true);
             $table->timestamps();
         });
     }
