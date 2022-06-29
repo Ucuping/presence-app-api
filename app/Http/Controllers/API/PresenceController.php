@@ -16,7 +16,7 @@ class PresenceController extends Controller
         try {
             setlocale(LC_ALL, 'IND');
             Carbon::setLocale('id');
-            $presences = Presence::whereUserId(Auth::user()->id)->orderById('desc');
+            $presences = Presence::whereUserId(Auth::user()->id)->orderBy('id', 'desc');
             if ($request->limit) {
                 $presences = $presences->take($request->limit);
             }
